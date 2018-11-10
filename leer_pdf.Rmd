@@ -1,0 +1,71 @@
+---
+title: "Extraccion datos PDF"
+author: "ixpantia"
+date: "November 7, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tabulizer)
+library(feather)
+library(stringr)
+library(readr)
+library(dplyr)
+```
+
+# Ejemplo de extracción de datos.
+
+```{r}
+# Extraccion datos tablas -------------------------------------------------
+archivo <- ("datos/peru_datos_cuadros.pdf")
+cuadros <- extract_tables(archivo)
+
+cuadro_7 <- as.data.frame(cuadros[[1]])
+cuadro_8 <- as.data.frame(cuadros[[2]])
+cuadro_9 <- as.data.frame(cuadros[[3]])
+```
+
+## Limpieza de datos
+
+```{r}
+write.csv(file = "prueba", cuadros)
+guess_encoding("prueba")
+Encoding(as.character(cuadro_8[27,]$V1))
+```
+
+```{r}
+cuadro <- cuadro_8 %>% 
+  slice(4:n()) %>% 
+  rename(departamento = V1,
+         buena = V2,
+         mala = V3,
+         respuesta = V4) %>% 
+  mutate(departamento = iconv(departamento, from = "UTF-8", to = "latin1")) %>% 
+  mutate(departamento = str_remove_all(departamento, pattern = " 3/")) %>% 
+  mutate(departamento = str_remove_all(departamento, pattern = " 2/")) %>% 
+  mutate(departamento = str_remove_all(departamento, pattern = " 1/")) %>% 
+  mutate(buena = str_replace(buena, pattern = ",", replacement = ".")) %>% 
+  mutate(mala = str_replace(mala, pattern = ",", replacement = ".")) %>% 
+  mutate(respuesta = str_replace(respuesta, pattern = ",", replacement = ".")) %>% 
+  mutate(buena = as.numeric(buena)) %>% 
+  mutate(mala = as.numeric(mala)) %>% 
+  mutate(respuesta = as.numeric(respuesta))
+  
+```
+
+
+## Grafico de barras
+
+```{r}
+library(ggplot2)
+ggplot(data = cuadro) + 
+  geom_bar(aes(x = reorder(departamento, buena), 
+               y = buena),
+           stat = "identity") +
+  coord_flip()
+```
+
+
+
+

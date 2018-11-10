@@ -1,0 +1,50 @@
+---
+title: "Dataductos en R"
+author: "ixpantia"
+date: "November 7, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Cargar los datos
+
+Los datos no estan incluidos con el código porque son relativamente grandes. Usamos un archivo de 106MB con 494.218 filas de datos de vuelos domesticos en los Estados Unidos [que se puede bajar aqui](https://packages.revolutionanalytics.com/datasets/AirOnTimeCSV2012/). 
+
+
+```{r}
+library(readr)
+
+vuelos <- read_csv("datos/airOT201212.csv")
+```
+
+El paquete readr es un buen ejemplo del desarrollo continuo de R y el entorno de paquetes del cual podemos depender. Es mucho mas rapido que la lectura de csv que viene incluida con R (`read.csv`) y ayuda a evitar errores.
+
+El siguiente los puede ver como reto contra Excel. Porque la velocidad
+
+- Cuantas aerolineas hay en los datos?
+- Cuantos destinos hay en los datos?
+- Cuentos aviones operan las areolineas en promedio
+
+```{r}
+library(dplyr)
+
+vuelos %>%
+  group_by(UNIQUE_CARRIER) %>% 
+  summarise(num_vuelos = n())
+
+vuelos %>%
+  group_by(DEST) %>% 
+  count()
+  
+  
+  summarise(num_vuelos = n())
+
+vuelos %>%
+  select(UNIQUE_CARRIER, TAIL_NUM) %>% 
+  distinct() %>% 
+  group_by(UNIQUE_CARRIER) %>% 
+  count()
+```
